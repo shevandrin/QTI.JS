@@ -1,9 +1,2 @@
-*~
-#*
-.#*
-work/
-tmp/
-temp/
-*.tmp
-docroot
-
+*.xml
+index.xml
