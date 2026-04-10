@@ -550,21 +550,25 @@ function exec(elem, ctx) {
 // of an element, returning an array of the results.
 function transformChildren(elem) {
   let children = [...elem.childNodes];
-  children = shouldBeShuffled(elem)? shuffleNodes(children): children;
-  return children.map(node=>{
-    switch(node.nodeType) {
-    case Node.ELEMENT_NODE:
-      return EXECUTORS[node.tagName]? exec(node): extension(node);
-    case Node.TEXT_NODE:
-      return trim(node.textContent);
-    case Node.COMMENT_NODE:
-      return "";
-    default:
-      WARN("unhandled node type", elem, node.nodeType, node);
-      return "";
+  children = shouldBeShuffled(elem) ? shuffleNodes(children) : children;
+
+  const preserveWhitespace = elem.tagName === "pre" || elem.tagName === "code";
+
+  return children.map(node => {
+    switch (node.nodeType) {
+      case Node.ELEMENT_NODE:
+        return EXECUTORS[node.tagName] ? exec(node) : extension(node);
+      case Node.TEXT_NODE:
+        return preserveWhitespace ? node.textContent : trim(node.textContent);
+      case Node.COMMENT_NODE:
+        return "";
+      default:
+        WARN("unhandled node type", elem, node.nodeType, node);
+        return "";
     }
   });
 }
+
 
 // Does nothing quietly.
 function no_transform(elem) {
@@ -716,10 +720,11 @@ function xmlbase(elem) {
 // "last chance" handler, QTI.JS copies all unrecognized elements in
 // the XML input to the HTML DOM, not just "official" v2.2 QTI elements.
 function verbatim(elem) {
-  let attribs=[...elem.attributes].map(a=>`${a.name}="${a.value}"`).join(" ");
+  let attribs = [...elem.attributes].map(a => `${a.name}="${a.value}"`).join(" ");
   let [opentag, closetag] = getTags(elem.tagName, attribs);
-  let content = transformChildren(elem).join(" ");
-  return {handled:true, value:[opentag,content,closetag].join("")};
+  let sep = (elem.tagName === "pre" || elem.tagName === "code") ? "" : " ";
+  let content = transformChildren(elem).join(sep);
+  return { handled: true, value: [opentag, content, closetag].join("") };
 }
 
 //////////////////////////////////////////////////////////////////////////////
