@@ -4039,6 +4039,19 @@ function updateMathMLVariables(item) {
   }
 }
 
+// Queues MathJax processing for content that has just been inserted.
+function typesetMathJax(elem=document) {
+  if (!(window.MathJax && elem))
+    return;
+
+  QTI.PROMISES.push(new Promise(function(resolve, reject){
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, elem, function(){
+      DEBUG("MathJax Typeset", elem);
+      resolve(true);
+    }]);
+  }));
+}
+
 // This "pivots" any tables classed as "pivotable" where
 // there is more than the maximum number columns and pivoting
 // would reduce the number of columns.
@@ -4443,6 +4456,7 @@ function referent(elem) {
       elem.parentElement.replaceChild(merge(ref,elem), elem);
       let loading = document.getElementById(id);
       replace(doTransforms(ref), loading);
+      typesetMathJax(document.getElementById(ref.id));
       if (ref.tagName=="assessmentItem") {
         setupAssessmentItem(ref);
       } else if (ref.tagName=="assessmentStimulus") {
@@ -5820,8 +5834,7 @@ window.addEventListener("load",function() {
   function start() {
     INFO("start", clock()+"msecs")
     loadThemeScript();
-    if (window.MathJax)
-      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    typesetMathJax();
     beginInteractionSessions(QTI.ROOT);
     setTimeout(initializeCurrentItem, 100);
     setInterval(updateTimeLimits, 100);
