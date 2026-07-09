@@ -3911,11 +3911,14 @@ function updateResultIcons(item) {
             break;
         case "directedPair":
             let resp_corr_tbl = item.declarations[resp_id].correctResponse;
-            let max_assoc= item.querySelector(`matchInteraction`).getAttribute("maxAssociations");
+            let match_interaction = [...item.querySelectorAll(`matchInteraction`)]
+                .find(interaction=>interaction.getAttribute("responseIdentifier") == resp_id);
+            let max_assoc = match_interaction && match_interaction.getAttribute("maxAssociations");
             let is_table = (max_assoc != 0)? true: false;
             if (is_table) {
                 let resp_cell_tbl = el.querySelector('input').getAttribute(ID);
                 let is_checked = el.querySelector('input').checked;
+                el.classList.remove("rqti-table-right", "rqti-table-wrong");
                 if (is_checked) {
                     if (resp_corr_tbl.includes(resp_cell_tbl)) {
                         el.classList.add("rqti-table-right");
